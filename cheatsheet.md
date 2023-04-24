@@ -39,3 +39,17 @@ with open("./data/scenariusz.csv", "r") as in_file, open(
         y_g = round(int(y_g) / 22, 2)
         out_file.write(f"{scen_id};{id};{x_min};{x_max};{y_min};{y_max};{x_g};{y_g}\n")
 ```
+
+#### Load routes
+
+```python
+routes = {}
+
+with open("data/routes.csv", encoding="utf-8-sig") as f:
+    for line in f.readlines():
+        route_id, rest = line.split(";", maxsplit=1)
+        routes[route_id] = tuple(rest.strip().split(";"))
+
+print(routes)
+
+```

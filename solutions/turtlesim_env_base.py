@@ -51,7 +51,9 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
         self.agents={}
         # TODO STUDENCI załadowanie tras agentów do self.routes
         with open(routes_fname,encoding='utf-8-sig') as f:  # załadowanie tras agentów
-            ...
+            for line in f.readlines():
+                route_id, rest = line.split(";", maxsplit=1)
+                self.routes[route_id] = tuple(rest.strip().split(";"))
         # utworzenie agentów-żółwi skojarzonych z trasami
         cnt=0
         for route,sections in self.routes.items():          # dla kolejnych tras
