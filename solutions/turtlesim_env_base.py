@@ -87,7 +87,7 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
             elif sections[tidx]=='random':                  # żółw pozycjonowany w losowym segmencie jego trasy
                 # TODO STUDENCI
                 # losowanie obszaru proporcjonalnie do liczby planowanych żółwi w obszarze
-                sec_id=...
+                sec_id = self._roulette_selection(self.routes[agent.route])
             else:                                           # żółw pozycjonowany we wskazanym segmencie (liczone od 0)
                 sec_id=sections[tidx]
             section=self.routes[agent.route][sec_id]        # przypisanie sekcji, w której się odrodzi
@@ -179,3 +179,10 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
                     self.routes[route_id].append(route_section)
                 else:
                     self.routes[route_id] = [route_section]
+        
+        print(f"Routes loaded: {self.routes}")
+
+    def _roulette_selection(self, sections: list) -> int:
+        max = sum([section[0] for section in sections])
+        selection_probs = [section[0]/max for section in sections]
+        return np.random.choice(len(sections), p=selection_probs)
