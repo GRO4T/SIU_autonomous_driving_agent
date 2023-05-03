@@ -20,7 +20,7 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
         self.GRID_RES = 5               # liczba komórek siatki
         self.CAM_RES = 200              # dł. boku siatki [px]
         self.SEC_PER_STEP = 1.0         #*okres dyskretyzacji sterowania - nie mniej niż 1 [s]
-        self.WAIT_AFTER_MOVE = .01      # oczekiwanie po setPose() i przed color_api.check() [s] (0.005 też daje radę)
+        self.WAIT_AFTER_MOVE = .05      # oczekiwanie po setPose() i przed color_api.check() [s] (0.005 też daje radę)
         # parametry oceny sytuacyjnej
         self.SPEED_RWRD_RATE = 0.5      #>wzmocnienie nagrody za jazdę w kierunku
         self.SPEED_RVRS_RATE = -10.0    #<wzmocnienie kary za jazdę pod prąd
