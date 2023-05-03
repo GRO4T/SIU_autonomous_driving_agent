@@ -50,10 +50,8 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
         self.routes={}
         self.agents={}
         # TODO STUDENCI załadowanie tras agentów do self.routes
-        with open(routes_fname,encoding='utf-8-sig') as f:  # załadowanie tras agentów
-            for line in f.readlines():
-                route_id, rest = line.split(";", maxsplit=1)
-                self.routes[route_id] = tuple(rest.strip().split(";"))
+        self._load_routes(routes_fname)
+
         # utworzenie agentów-żółwi skojarzonych z trasami
         cnt=0
         for route,sections in self.routes.items():          # dla kolejnych tras
@@ -166,3 +164,18 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
         fc=fx*np.cos(pose.theta)+fy*np.sin(pose.theta)          # rzut zalecanej prędkości na azymut [m/s]
         fp=fy*np.cos(pose.theta)-fx*np.sin(pose.theta)          # rzut zalecanej prędkości na _|_ azymut
         return fx,fy,fa,fd,fc+1,fp+1,fo                         # informacja w ukł. wsp. żółwia
+    
+    def _load_routes(self, routes_filename: str):
+        with open(routes_filename, encoding='utf-8-sig') as f:  # załadowanie tras agentów
+            for line in f.readlines():
+                route_id, agent_cnt, x_min, x_max, y_min, y_max, x_g, y_g = line.strip().split(";")
+                route_section = (
+                    int(agent_cnt),
+                    float(x_min), float(x_max),
+                    float(y_min), float(y_max),
+                    float(x_g), float(y_g),
+                )
+                if route_id in self.routes.keys():
+                    self.routes[route_id].append(route_section)
+                else:
+                    self.routes[route_id] = [route_section]
