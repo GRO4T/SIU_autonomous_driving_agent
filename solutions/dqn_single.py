@@ -80,17 +80,15 @@ class DqnSingle():
         step_cnt=0
         train_cnt=0
         for episode in range(start_episode, self.EPISODES_MAX):                                    # ucz w epizodach treningowych
-            print(f'{len(self.replay_memory)} E{episode} ',end='')
+            print(f"episode={episode} replay_buffer_length={len(self.replay_memory)}")
             current_state=self.env.reset(tnames=[tname],sections=['random'])[tname].map
             last_state=[i.copy() for i in current_state]                            # zaczyna od postoju: poprz. stan taki jak obecny
             episode_rwrd=0                                                          # suma nagród za kroki w epizodzie
             while True:                                                             # o przerwaniu decyduje do_train()
                 if np.random.random()>epsilon:                                      # sterowanie wg reguły albo losowe
                     control=np.argmax(self.decision(self.model,last_state,current_state))
-                    print('o',end='')                                               # "o" - sterowanie z modelu
                 else:
                     control=np.random.randint(0,self.CTL_DIM)                       # losowa prędkość pocz. i skręt
-                    print('.', end='')                                              # "." - sterowanie losowe
                 new_state,reward,done=self.env.step({tname:self.ctl2act(control)})  #krok symulacji
                 step_cnt+=1
                 episode_rwrd+=reward
@@ -101,9 +99,6 @@ class DqnSingle():
                     train_cnt+=1
                     if train_cnt%self.UPDATE_TARGET_EVERY==0:
                         self.target_model.set_weights(self.model.get_weights())     # aktualizuj model pomocniczy
-                        print('T',end='')
-                    else:
-                        print('t',end='')
                 if done:
                     break
                 last_state = current_state                                          # przejście do nowego stanu
@@ -112,7 +107,7 @@ class DqnSingle():
                     epsilon*=self.EPS_DECAY
                     epsilon=max(self.EPS_MIN,epsilon)                               # podtrzymaj losowość ruchów
             episode_rewards[episode]=episode_rwrd
-            print(f' {np.nanmean(episode_rewards[episode-19:episode+1])/20:.2f}')   # śr. nagroda za krok
+            print(f" mean_reward={np.nanmean(episode_rewards[episode-19:episode+1])/20:.2f}")   # śr. nagroda za krok
 
             if save_model and episode > start_episode and episode % self.SAVE_MODEL_EVERY == 0:
                 self._save_model(episode)
@@ -156,6 +151,7 @@ if __name__ == "__main__":
     agents=env.reset()                                          # ustawienie agenta
     tname=list(agents.keys())[0]                                # 'lista agentów' do wytrenowania
     dqns=DqnSingle(env)                                         # utworzenie klasy uczącej
+    print(f"Running experiment: {dqns.xid()}")
     dqns.make_model()                                           # skonstruowanie sieci neuronowej
 
     # Start training 
