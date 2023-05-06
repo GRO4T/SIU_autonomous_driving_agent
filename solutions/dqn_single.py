@@ -26,7 +26,7 @@ class DqnSingle():
         self.EPISODES_MAX=4000              #*P liczba epizodów uczących
         self.CTL_DIM=6                      #   liczba możliwych akcji (tj. sterowań, decyzji)
         self.TRAIN_EVERY=4                  # T co ile kroków uczenie modelu szybkozmiennego
-        self.SAVE_MODEL_EVERY=250           #*  co ile epizodów zapisywać model # TODO STUDENCI
+        self.SAVE_MODEL_EVERY=50           #*  co ile epizodów zapisywać model # TODO STUDENCI
         random.seed(seed)
         np.random.seed(seed)
         self.model=None
@@ -113,6 +113,10 @@ class DqnSingle():
                     epsilon=max(self.EPS_MIN,epsilon)                               # podtrzymaj losowość ruchów
             episode_rewards[episode]=episode_rwrd
             print(f' {np.nanmean(episode_rewards[episode-19:episode+1])/20:.2f}')   # śr. nagroda za krok
+
+            if save_model and episode > 0 and episode % self.SAVE_MODEL_EVERY == 0:
+                self._save_model(episode)
+
     # przygotowuje próbkę uczącą i wywołuje douczanie modelu
     def do_train(self, episode=None):
         minibatch=random.sample(self.replay_memory,self.MINIBATCH_SIZE)             # losowy podzbiór kroków z historii
@@ -139,6 +143,9 @@ class DqnSingle():
         X=np.stack(X)
         y=np.stack(y)
         self.model.fit(X,y,batch_size=self.TRAINING_BATCH_SIZE,verbose=0,shuffle=False)
+    
+    def _save_model(self, episode: int):
+        self.model.save(f"./models/{self.id_prefix}_model_{episode}.tf")
 
 
 # przykładowe wywołanie uczenia
