@@ -4,7 +4,7 @@ import pickle
 import numpy as np
 from collections import deque
 from tensorflow import keras, constant
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import Conv3D, Permute, Dense, Flatten
 from turtlesim_env_base import TurtlesimEnvBase
 import turtlesim_env_single
@@ -72,14 +72,14 @@ class DqnSingle():
         self.model.add(Dense(self.CTL_DIM,activation="linear"))                     # wyjście Q dla każdej z CTL_DIM decyzji
         self.model.compile(loss='mse',optimizer=keras.optimizers.Adam(learning_rate=0.001),metrics=["accuracy"])
     # uczenie od podstaw: generuj kroki, gromadź pomiary, ucz na próbce losowej, okresowo aktualizuj model pomocniczy
-    def train_main(self,tname:str,save_model=True):             # TODO STUDENCI okresowy zapis modelu
+    def train_main(self,tname:str,save_model=True, start_episode = 0):             # TODO STUDENCI okresowy zapis modelu
         self.target_model=keras.models.clone_model(self.model)                      # model pomocniczy (wolnozmienny)
         self.replay_memory=deque(maxlen=self.REPLAY_MEM_SIZE_MAX)                   # historia kroków
         episode_rewards=np.zeros(self.EPISODES_MAX)*np.nan                          # historia nagród w epizodach
         epsilon=self.EPS_INIT
         step_cnt=0
         train_cnt=0
-        for episode in range(self.EPISODES_MAX):                                    # ucz w epizodach treningowych
+        for episode in range(start_episode, self.EPISODES_MAX):                                    # ucz w epizodach treningowych
             print(f'{len(self.replay_memory)} E{episode} ',end='')
             current_state=self.env.reset(tnames=[tname],sections=['random'])[tname].map
             last_state=[i.copy() for i in current_state]                            # zaczyna od postoju: poprz. stan taki jak obecny
@@ -114,7 +114,7 @@ class DqnSingle():
             episode_rewards[episode]=episode_rwrd
             print(f' {np.nanmean(episode_rewards[episode-19:episode+1])/20:.2f}')   # śr. nagroda za krok
 
-            if save_model and episode > 0 and episode % self.SAVE_MODEL_EVERY == 0:
+            if save_model and episode > start_episode and episode % self.SAVE_MODEL_EVERY == 0:
                 self._save_model(episode)
 
     # przygotowuje próbkę uczącą i wywołuje douczanie modelu
@@ -157,5 +157,11 @@ if __name__ == "__main__":
     tname=list(agents.keys())[0]                                # 'lista agentów' do wytrenowania
     dqns=DqnSingle(env)                                         # utworzenie klasy uczącej
     dqns.make_model()                                           # skonstruowanie sieci neuronowej
-    # dqns.model=load_model('test.h5')                          # albo załadowanie zapisanej wcześniej
-    dqns.train_main(tname,save_model=True)                      # wywołanie uczenia
+
+    # Start training 
+    dqns.train_main(tname,save_model=True, start_episode=0)    # wywołanie uczenia
+
+    # Continue training
+    #loaded_model_episode = 100
+    #dqns.model=load_model(f"models/dqns_model_{loaded_model_episode}.tf")           # albo załadowanie zapisanej wcześniej
+    #dqns.train_main(tname,save_model=True, start_episode=loaded_model_episode)    # wywołanie uczenia
