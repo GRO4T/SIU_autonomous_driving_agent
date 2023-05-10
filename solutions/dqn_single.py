@@ -67,6 +67,8 @@ class DqnSingle():
         self.model.add(Conv3D(filters=2*M,kernel_size=(2,2,2*M),activation='relu'))
         self.model.add(Permute((1,2,4,3)))
         self.model.add(Conv3D(filters=2*M,kernel_size=(2,2,2*M),activation='relu'))
+        self.model.add(Permute((1,2,4,3)))
+        self.model.add(Conv3D(filters=2*M,kernel_size=(2,2,2*M),activation='relu'))
         self.model.add(Flatten())
         self.model.add(Dense(32,activation='relu'))
         self.model.add(Dense(self.CTL_DIM,activation="linear"))                     # wyjście Q dla każdej z CTL_DIM decyzji
