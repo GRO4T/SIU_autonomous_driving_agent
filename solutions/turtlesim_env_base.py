@@ -1,4 +1,5 @@
 # encoding: utf8
+import logging
 import abc
 import sys
 import csv
@@ -9,6 +10,12 @@ import numpy as np
 from cv_bridge import CvBridge
 from turtlesim.msg import Pose
 from TurtlesimSIU import TurtlesimSIU
+
+from logger import init_logging
+
+init_logging()
+logger = logging.getLogger(__name__)
+
 
 class TurtleAgent:      # struktura ze stałymi i bieżącymi atrybutami agenta
     pass                # route, sec_id, seq, color_api, goal_loc, pose, map, fd, section  - przypisywane na bieżąco
@@ -41,6 +48,7 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
     def setup(self,
               routes_fname: str,        # nazwa pliku z definicją scenariuszy
               agent_cnt=None):          # ograniczenie na liczbę tworzonych agentów (None - brak ogr., agenty wg scenariuszy)
+        logger.info(f"Setting up the environement for {agent_cnt} turtles")
         signal.signal(signal.SIGINT,self.signal_handler)    # zainstalowanie obsługi zdarzenia
         bridge = CvBridge()
         rospy.init_node('siu_example',anonymous=False)
@@ -61,14 +69,15 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
                     if agent_cnt is not None and cnt>agent_cnt:                 # ogranicz liczbę tworzonych żółwi
                         return
                     tname=f'{route}_{sec_id}_{seq}'         # identyfikator agenta: trasa, segment pocz., nr kolejny
-                    print(f'Agent {tname}')
                     ta=TurtleAgent()                        # utwórz agenta lokalnie i zainicjuj tożsamość
                     ta.route=route
                     ta.sec_id=sec_id
                     ta.seq=seq
                     self.agents[tname]=ta
                     if self.tapi.hasTurtle(tname):          # utwórz/odtwórz agenta w symulatorze
+                        logger.debug(f"Killing turtle {tname}")
                         self.tapi.killTurtle(tname)
+                    logger.debug(f"Spawning turtle {tname}")
                     self.tapi.spawnTurtle(tname,Pose())
                     self.tapi.setPen(tname,turtlesim.srv.SetPenRequest(off=1))  # unieś rysik
                     ta.color_api=TurtlesimSIU.ColorSensor(tname)                # przechowuj obiekt sensora koloru
@@ -76,6 +85,7 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
     def reset(self,
               tnames=None,                                  # lista nazw zółwi do resetu (None=wszystkie)
               sections='default') -> dict:                  # nry sekcji trasy dla każdego żółwia (default=domyślny,random=losowy)
+        logger.info("Resetting the environment")
         self.step_sum = 0
         if tnames is None:
             tnames = self.agents.keys()
@@ -179,7 +189,7 @@ class TurtlesimEnvBase(metaclass=abc.ABCMeta):
                 else:
                     self.routes[route_id] = [route_section]
         
-        print(f"Routes loaded: {self.routes}")
+        logger.info(f"Routes loaded: {self.routes}")
 
     def _roulette_selection(self, sections: list) -> int:
         max = sum([section[0] for section in sections])

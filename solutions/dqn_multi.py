@@ -9,6 +9,11 @@ from keras.layers import *
 from turtlesim_env_base import TurtlesimEnvBase
 import turtlesim_env_multi
 from dqn_single import DqnSingle
+import logging 
+from logger import init_logging
+
+init_logging()
+logger = logging.getLogger(__name__)
 
 class DqnMulti(DqnSingle):
     def __init__(self,env:TurtlesimEnvBase,id_prefix='dqnm',seed=42):
@@ -64,13 +69,12 @@ class DqnMulti(DqnSingle):
             for tname in self.env.agents:                                               # poruszamy każdym agentem
                 if np.random.random()>epsilon:                                          # sterowanie wg reguły albo losowe
                     controls[tname]=np.argmax(self.decision(self.model,last_states[tname],current_states[tname]))
-                    print('o',end='')
                 else:
                     controls[tname]=np.random.randint(0,self.CTL_DIM)                   # losowa prędkość pocz. i skręt
-                    print('.', end='')
             actions={tname:self.ctl2act(control) for tname,control in controls.items()} # wartości sterowań
             scene=self.env.step(actions)                                                # kroki i wyniki symulacji
             for tname,(new_state,reward,done) in scene.items():                         # obsługa po kroku dla każdego agenta
+                logger.debug(f"turtle={tname} is_done={done}")
                 episode_rewards[agent_episode[tname]]+=reward                           # akumulacja nagrody
                 self.replay_memory.append((last_states[tname],current_states[tname],controls[tname],reward,new_state,done))
                 step_cnt+=1
@@ -79,13 +83,10 @@ class DqnMulti(DqnSingle):
                     train_cnt+=1
                     if train_cnt%self.UPDATE_TARGET_EVERY==0:
                         self.target_model.set_weights(self.model.get_weights())         # aktualizuj model pomocniczy
-                        print('T',end='')
-                    else:
-                        print('t',end='')
                 if done:
                     to_restart.add(tname)
-                    print(f'\n {len(self.replay_memory)} {tname} E{episode} ',end='')
-                    print(f'{np.nanmean(episode_rewards.take(range(episode-self.env.MAX_STEPS-1,episode+1),mode="wrap"))/self.env.MAX_STEPS:.2f} ',end='')  # śr. nagroda za krok
+                    logger.debug(f"turtle={tname} episode={episode} replay_buffer_length={len(self.replay_memory)}")
+                    logger.debug(f'turtle={tname} mean_reward={np.nanmean(episode_rewards.take(range(episode-self.env.MAX_STEPS-1,episode+1),mode="wrap"))/self.env.MAX_STEPS:.2f} ',end='')  # śr. nagroda za krok
                 last_states[tname] = current_states[tname]                              # przejście do nowego stanu
                 current_states[tname] = new_state                                       # z zapamiętaniem poprzedniego
                 if epsilon > self.EPS_MIN:                                              # rosnące p-stwo uczenia na podst. historii
@@ -96,11 +97,12 @@ class DqnMulti(DqnSingle):
 # przykładowe wywołanie uczenia
 from tensorflow.keras.models import load_model
 if __name__ == "__main__":
+    logger.debug("Running DQN multi")
     env=turtlesim_env_multi.provide_env()                   # utworzenie środowiska
     env.PI_BY=3                                             # zmiana wybranych parametrów środowiska
     prefix='X6-c20c20c20d64-M-lr001'                        # bazowy z kolizjami
     env.DETECT_COLLISION=True
-    env.setup('routes.csv')                                 # połączenie z symulatorem
+    env.setup('routes.csv', agent_cnt=5)                                 # połączenie z symulatorem
     agents=env.reset()                                      # ustawienie agenta
     dqnm=DqnMulti(env,id_prefix=prefix)                     # utworzenie klasy uczącej
     dqnm.make_model()                                       # skonstruowanie sieci neuronowej

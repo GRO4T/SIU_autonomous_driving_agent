@@ -9,3 +9,4 @@ docker cp scripts/docker_setup.sh siu:/root/
 docker cp solutions/dqn_multi.py siu:/root/
 docker cp solutions/turtlesim_env_multi.py siu:/root/
 docker cp solutions/play-dqn.py siu:/root/
+docker cp solutions/logger.py siu:/root/
