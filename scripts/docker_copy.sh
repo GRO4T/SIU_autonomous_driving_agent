@@ -13,3 +13,5 @@ docker cp solutions/dqn_multi.py $CONTAINER_NAME:/root/
 docker cp solutions/turtlesim_env_multi.py $CONTAINER_NAME:/root/
 docker cp solutions/play-dqn.py $CONTAINER_NAME:/root/
 docker cp solutions/logger.py $CONTAINER_NAME:/root/
+docker cp models $CONTAINER_NAME:/root/
+docker cp solutions/play_dqn.sh $CONTAINER_NAME:/root/

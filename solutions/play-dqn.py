@@ -41,6 +41,7 @@ else:
 
 env=provide_env()
 env.setup(args.routes,agent_cnt=args.n_agents)          # wczytanie tras i zarezerwowanie 1 agenta
+env.reset()
 env.PI_BY=3                                             # pocz. odchyłka od azymutu na cel losowo w przedziale +-pi/3
 if args.grid_res is not None:
     env.GRID_RES=args.grid_res
