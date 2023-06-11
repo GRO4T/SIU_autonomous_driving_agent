@@ -102,7 +102,7 @@ if __name__ == "__main__":
     env.PI_BY=3                                             # zmiana wybranych parametrów środowiska
     prefix='X6-c20c20c20d64-M-lr001'                        # bazowy z kolizjami
     env.DETECT_COLLISION=True
-    env.setup('routes.csv', agent_cnt=5)                                 # połączenie z symulatorem
+    env.setup('routes.csv', agent_cnt=14)                                 # połączenie z symulatorem
     agents=env.reset()                                      # ustawienie agenta
     dqnm=DqnMulti(env,id_prefix=prefix)                     # utworzenie klasy uczącej
     dqnm.make_model()                                       # skonstruowanie sieci neuronowej
